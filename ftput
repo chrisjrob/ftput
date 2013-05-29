@@ -1,0 +1,246 @@
+#!/usr/bin/perl -w
+# ftput
+# Simple replacement for wput, which appears to be badly broken
+
+use strict;
+use File::Copy;
+use Pod::Usage;
+use Getopt::Long;
+
+my (%args, $host, $user, $pass, $directory, $mode, $verbose, $retries, $LOGFILE, $QUIET, $help);
+GetOptions(	"host=s"	=> \$host,
+		"user=s"	=> \$user,
+		"pass=s"	=> \$pass,
+                "directory=s"   => \$directory,
+                "mode=s"        => \$mode,
+                "verbose"       => \$verbose,
+                "retries"       => \$retries,
+                "logfile=s"     => \$LOGFILE,
+                "quiet"         => \$QUIET,
+                "help"          => \$help
+);
+
+use vars qw($LOGFILE $QUIET);
+
+my @files = @ARGV;
+my $count = @files;
+
+if ($help) {
+    pod2usage(1)
+} elsif ($count == 0) {
+    pod2usage(1);
+    logger("You need to list at least one file at line " . __LINE__, 1);
+} elsif (! defined($host)) {
+    pod2usage(1);
+    logger("You must provide a host to which to connect.", 1);
+} elsif ((! defined($user)) or (! defined($pass)) ) {
+    pod2usage(1);
+    logger("You must provide a username and password.", 1);
+}
+
+my %ftp = (
+        HOST		=> $host,
+        USER		=> $user,
+        PASS		=> $pass,
+        DIRECTORY       => $directory,
+        MODE            => $mode,
+        VERBOSE         => $verbose,
+        RETRIES         => $retries,
+        FILES           => \@files
+);
+
+upload_via_ftp(%ftp);
+
+logger("ftput terminated normally");
+
+exit;
+
+# ---------------------------------------------------------------------------------
+
+sub upload_via_ftp {
+
+    my %ftp = @_;
+
+    my $debug = 0;
+    if ( $ftp{'VERBOSE'} ) {
+        $debug = 1;
+    }
+
+    my $file = $_[0];
+
+    use Net::FTP;
+
+    logger("Connecting to " . $ftp{'HOST'});
+    my $ftp = Net::FTP->new( $ftp{'HOST'}, Debug => $debug );
+    check_status($ftp);
+
+    logger("Logging in as user " . $ftp{'USER'});
+    my $response = $ftp->login( $ftp{'USER'}, $ftp{'PASS'} );
+    check_status($response);
+
+    my $mode = 'auto';
+    if ( defined($ftp{'MODE'}) and ( $ftp{'MODE'} =~ /ascii/i ) ) {
+        logger("Changing to ASCII file mode... ");
+        $response = $ftp->ascii;
+        check_status($response);
+        $mode = 'ascii';
+    } elsif ( defined($ftp{'MODE'}) and ( $ftp{'MODE'} =~ /binary/i ) ) {
+        logger("Changing to BINARY file mode... ");
+        $response = $ftp->binary;
+        check_status($response);
+        $mode = 'binary';
+    }
+
+    if ( $ftp{'DIRECTORY'} ) {
+        logger("Changing destination directory to " . $ftp{'DIRECTORY'});
+        $response = $ftp->cwd($ftp{'DIRECTORY'});
+        check_status($response);
+    }
+    
+    my $files = $ftp{'FILES'};
+    foreach my $file ( @{ $files } ) {
+        ftp_file($ftp, $mode, $file, $ftp{'RETRIES'} )
+    }
+
+}
+
+sub ftp_file {
+
+    my ($ftp, $mode, $file, $retries) = @_;
+
+    if (! defined($retries) ) {
+        $retries = 1;
+    }
+
+    my $response;
+
+    if ( $mode eq 'auto' ) {
+        if ($file =~ /\.(csv|txt)$/) {
+            logger("Changing to ASCII file mode as file is $1 ... ");
+            $response = $ftp->ascii;
+            check_status($response);
+        } else {
+            logger("Changing to BINARY file mode as file is $1 ... ");
+            $response = $ftp->binary;
+            check_status($response);
+        }
+    }
+
+    my $counter = 0;
+    do {
+        $counter++;
+        logger("Putting $file... ");
+        $response = $ftp->put($file);
+    } until ( defined($response) || ( $counter >= $retries ) );
+    check_status($response);
+
+}
+
+sub check_status {
+    my ($response) = @_;
+    if ( defined($response) ) {
+        logger("Done '$response'");
+    }
+    else {
+        logger("Failed '$response': $!", 1);
+    }
+}
+
+sub initialise_logfile {
+
+    my $time = localtime;
+
+    if ($LOGFILE) {
+        open( LOGFILE, ">>", $LOGFILE ) or die "Cannot write to $LOGFILE: $!";
+        print LOGFILE "$time: ftput starting...\n";
+        close( LOGFILE ) or die "Cannot close $LOGFILE: $!";
+    }
+
+}
+
+sub logger {
+    my ($message, $die) = @_;
+
+    my $time = localtime;
+
+    if ($LOGFILE) {
+        open( LOGFILE, ">>", $LOGFILE ) or die "Cannot write to $LOGFILE: $!";
+        print LOGFILE "$time: $message\n";
+        close( LOGFILE ) or die "Cannot close $LOGFILE: $!";
+    }
+
+    if ($die) {
+        die $message;
+    } elsif (! $QUIET) {
+        print $message, "\n";
+    }
+}
+
+__END__
+
+=head1 ftput
+
+=head1 USAGE
+
+=head1 SYNOPSIS
+
+ftput --host ftp.example.com --user bob --pass hHfjl754J file1 file2
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exits.
+
+=item B<--host>
+
+FTP hostname (required).
+
+=item B<--user>
+
+FTP username (required), if anonymous then state 'anonymous'.
+
+=item B<--pass>
+
+FTP password (required), if anonymous then correct usage is to state your email address.
+
+=item B<--directory>
+
+FTP destination directory.  If not stated then the root directory will be used.  If destination directory does not exist, then it will NOT be created, the FTP session will fail.
+
+=item B<--ascii>
+
+Specify to force ascii mode for all files.
+
+=item B<--binary>
+
+Specify to force binary mode for all files.
+
+=item B<--verbose>
+
+Specify to force debug switch on FTP session.
+
+=item B<--retries>
+
+By default only one attempt will be made to upload each file, it may be worth increasing retries on poor connections.
+
+=item B<--logfile>
+
+Specify the path and file or the logfile. E.g. /var/log/ftput.  If not specified then no logfile will be used, but standard output and standard error will be used, subject to --quiet option below.
+
+=item B<--quiet>
+
+Silence standard output, standard error cannot be silenced.
+
+=back
+
+=head1 DESCRIPTION
+
+B<ftput> will connect to the specified Host and login with the specified Username and Password.  It will then change to the appropriate destination directory (if any), and change into ASCII or BINARY mode (if specified), it will then upload each file in turn.
+
+This is a minimalist ftp client, it will only put files, and cannot cope with wildcards, nor can it operate recursively on a local directory; so each and every file to upload must be specified.
+
+=cut
+
