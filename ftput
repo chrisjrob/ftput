@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 # ftput
 # Simple replacement for wput, which appears to be badly broken
+# Expect bugs and a lack of error checking
+# Do not use for mission critical applications
 
 use strict;
 use File::Copy;
