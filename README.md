@@ -13,10 +13,10 @@ Do not use to back up your mission critical databases.
 Installation
 ------------
 
-1 Install Perl
-2 Install Net::FTP if it isn't installed with perl core
-3 Make executable
-4 ftput --help
+# Install Perl
+# Install Net::FTP if it isn't installed with perl core
+# Make executable
+# ftput --help
 
 
 
