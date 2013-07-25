@@ -1,0 +1,117 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>FTPUT</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+
+<ul>
+
+	<li><a href="#ftput">ftput</a></li>
+	<li><a href="#usage">USAGE</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#options">OPTIONS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+</ul>
+
+<hr name="index" />
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="ftput">ftput</a></h1>
+<p>
+</p>
+<hr />
+<h1><a name="usage">USAGE</a></h1>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>ftput --host ftp.example.com --user bob --pass hHfjl754J file1 file2</p>
+<p>
+</p>
+<hr />
+<h1><a name="options">OPTIONS</a></h1>
+<dl>
+<dt><strong><a name="help" class="item"><strong>--help</strong></a></strong></dt>
+
+<dd>
+<p>Print a brief help message and exits.</p>
+</dd>
+<dt><strong><a name="host" class="item"><strong>--host</strong></a></strong></dt>
+
+<dd>
+<p>FTP hostname (required).</p>
+</dd>
+<dt><strong><a name="user" class="item"><strong>--user</strong></a></strong></dt>
+
+<dd>
+<p>FTP username (required), if anonymous then state 'anonymous'.</p>
+</dd>
+<dt><strong><a name="pass" class="item"><strong>--pass</strong></a></strong></dt>
+
+<dd>
+<p>FTP password (required), if anonymous then correct usage is to state your email address.</p>
+</dd>
+<dt><strong><a name="passive" class="item"><strong>--passive</strong></a></strong></dt>
+
+<dd>
+<p>Set to connect in passive mode - works better for some firewalls.</p>
+</dd>
+<dt><strong><a name="directory" class="item"><strong>--directory</strong></a></strong></dt>
+
+<dd>
+<p>FTP destination directory.  If not stated then the root directory will be used.  If destination directory does not exist, then it will NOT be created, the FTP session will fail.</p>
+</dd>
+<dt><strong><a name="ascii" class="item"><strong>--ascii</strong></a></strong></dt>
+
+<dd>
+<p>Specify to force ascii mode for all files.</p>
+</dd>
+<dt><strong><a name="binary" class="item"><strong>--binary</strong></a></strong></dt>
+
+<dd>
+<p>Specify to force binary mode for all files.</p>
+</dd>
+<dt><strong><a name="verbose" class="item"><strong>--verbose</strong></a></strong></dt>
+
+<dd>
+<p>Specify to force debug switch on FTP session.</p>
+</dd>
+<dt><strong><a name="retries" class="item"><strong>--retries</strong></a></strong></dt>
+
+<dd>
+<p>By default only one attempt will be made to upload each file, it may be worth increasing retries on poor connections.</p>
+</dd>
+<dt><strong><a name="logfile" class="item"><strong>--logfile</strong></a></strong></dt>
+
+<dd>
+<p>Specify the path and file or the logfile. E.g. /var/log/ftput.  If not specified then no logfile will be used, but standard output and standard error will be used, subject to --quiet option below.</p>
+</dd>
+<dt><strong><a name="quiet" class="item"><strong>--quiet</strong></a></strong></dt>
+
+<dd>
+<p>Silence standard output, standard error cannot be silenced.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p><strong>ftput</strong> will connect to the specified Host and login with the specified Username and Password.  It will then change to the appropriate destination directory (if any), and change into ASCII or BINARY mode (if specified), it will then upload each file in turn.</p>
+<p>This is a minimalist ftp client, it will only put files, and cannot cope with wildcards, nor can it operate recursively on a local directory; so each and every file to upload must be specified.</p>
+
+</body>
+
+</html>
