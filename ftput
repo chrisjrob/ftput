@@ -22,12 +22,13 @@ use File::Copy;
 use Pod::Usage;
 use Getopt::Long;
 
-my (%args, $host, $user, $pass, $directory, $mode, $verbose, $retries, $LOGFILE, $QUIET, $help);
+my (%args, $host, $user, $pass, $directory, $mode, $passive, $verbose, $retries, $LOGFILE, $QUIET, $help);
 GetOptions(	"host=s"	=> \$host,
 		"user=s"	=> \$user,
 		"pass=s"	=> \$pass,
                 "directory=s"   => \$directory,
                 "mode=s"        => \$mode,
+                "passive"       => \$passive,
                 "verbose"       => \$verbose,
                 "retries"       => \$retries,
                 "logfile=s"     => \$LOGFILE,
@@ -59,6 +60,7 @@ my %ftp = (
         PASS		=> $pass,
         DIRECTORY       => $directory,
         MODE            => $mode,
+        PASSIVE         => $passive,
         VERBOSE         => $verbose,
         RETRIES         => $retries,
         FILES           => \@files
@@ -81,12 +83,20 @@ sub upload_via_ftp {
         $debug = 1;
     }
 
+    my $passive = 0;
+    if ( $ftp{'PASSIVE'} ) {
+        $passive = 1;
+    }
+
     my $file = $_[0];
 
     use Net::FTP;
 
     logger("Connecting to " . $ftp{'HOST'});
-    my $ftp = Net::FTP->new( $ftp{'HOST'}, Debug => $debug );
+    my $ftp = Net::FTP->new( 
+        $ftp{'HOST'}, 
+        Debug => $debug,
+        Passive => $passive );
     check_status($ftp);
 
     logger("Logging in as user " . $ftp{'USER'});
@@ -220,6 +230,10 @@ FTP username (required), if anonymous then state 'anonymous'.
 =item B<--pass>
 
 FTP password (required), if anonymous then correct usage is to state your email address.
+
+=item B<--passive>
+
+Set to connect in passive mode - works better for some firewalls.
 
 =item B<--directory>
 
