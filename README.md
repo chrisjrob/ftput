@@ -30,5 +30,5 @@ Or use standard pod tools, e.g.
     $ pod2text ftput.pl
     $ pod2html --title FTPUT ftput.pl
 
-Finally a copy is available [in HTML format](https://github.com/chrisjrob/ftput/blob/master/manual.html "Read manual")
+Finally a copy is available [in HTML format](http://htmlpreview.github.com/chrisjrob/ftput/blob/master/manual.html "Read manual")
 
